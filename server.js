@@ -2,13 +2,12 @@
 var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
-var mongoClient = require('mongodb').MongoClient;
-var objectId = require('mongodb').ObjectID;
 
 var multer = require('multer'); // v1.0.5
 var upload = multer(); // for parsing multipart/form-data
-var db = require('./db');
 
+var db = require('./db');
+var artistController = require('./controllers/artist');
 
 
 app.use(bodyParser.json()); // for parsing application/json
@@ -21,75 +20,19 @@ app.get('/', function (req, res) {
 
 
 //UPDATE
-app.put('/artist/:id', function (req, res) {
-    db.get().collection('artists').updateOne(
-        {_id: objectId(req.params.id)},
-        {name: req.body.name},
-        function (err,result) {
-            if(err){
-                console.log(err);
-                return res.sendStatus(500);
-            }
-            res.sendStatus(200);
+app.put('/artist/:id', artistController.update);
 
-        }
-    )
-
-});
-
-app.delete('/artist/:id', function (req, res) {
-    db.get().collection('artists').deleteOne(
-        {_id: objectId(req.params.id)},
-        function (err,result) {
-            if(err){
-                console.log(err);
-                return res.sendStatus(500);
-            }
-            res.sendStatus(200);
-        }
-    )
-});
+//DELETE ONE
+app.delete('/artist/:id', artistController.delete);
 
 // ADD ONE
-app.post('/artist', function (req, res) {
-    var artist = {
-        name: req.body.name
-    };
-    db.get().collection('artists').insert(artist, function (err, result) {
-        if (err) {
-            console.error(err);
-            return res.sendStatus(500);
-        }
-        res.send(artist);
-    });
-
-});
+app.post('/artist', artistController.create);
 
 //GET ALL
-
-app.get('/artist', function (req, res) {
-    db.get().collection('artists').find().toArray(function (err, docs) {
-        if (err) {
-            console.log(err);
-            return res.sendStatus(500);
-        }
-        res.send(docs);
-    })
-    // res.send(artists);
-});
+app.get('/artist', artistController.all);
 
 //GET ONE
-app.get('/artist/:id', function (req, res) {
-   db.get().collection('artists').findOne({_id: objectId(req.params.id)}, function (err,doc) {
-       if (err){
-           console.log(err);
-           return res.sendStatus(500);
-       }
-       res.send(doc);
-   })
-
-
-});
+app.get('/artist/:id', artistController.findById);
 
 
 db.connect('mongodb://localhost:27017/myapi', function (err) {
